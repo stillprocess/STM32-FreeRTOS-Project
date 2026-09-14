@@ -1,0 +1,14 @@
+﻿OBJ/
+LIST/
+
+*.o
+*.d
+*.crf
+*.axf
+*.hex
+*.bin
+*.log
+*.build_log.htm
+
+# 本地设备凭据，不提交到GitHub
+HARDWARE/secrets.h
