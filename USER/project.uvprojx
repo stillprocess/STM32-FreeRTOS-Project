@@ -576,16 +576,6 @@
               <FilePath>..\HARDWARE\dht11.h</FilePath>
             </File>
             <File>
-              <FileName>i2c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\i2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>i2c.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\HARDWARE\i2c.h</FilePath>
-            </File>
-            <File>
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\led.c</FilePath>
@@ -596,16 +586,6 @@
               <FilePath>..\HARDWARE\led.h</FilePath>
             </File>
             <File>
-              <FileName>spi1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\spi1.c</FilePath>
-            </File>
-            <File>
-              <FileName>spi1.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\HARDWARE\spi1.h</FilePath>
-            </File>
-            <File>
               <FileName>uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\uart.c</FilePath>
@@ -614,16 +594,6 @@
               <FileName>uart.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\HARDWARE\uart.h</FilePath>
-            </File>
-            <File>
-              <FileName>w25q128.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\w25q128.c</FilePath>
-            </File>
-            <File>
-              <FileName>w25q128.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\HARDWARE\w25q128.h</FilePath>
             </File>
             <File>
               <FileName>keyboard.c</FileName>

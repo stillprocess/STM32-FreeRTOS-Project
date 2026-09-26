@@ -36,7 +36,9 @@ const alerts = computed(() => {
 })
 
 function readNumber(properties, identifier) {
-  const value = Number(properties?.[identifier]?.value)
+  const raw = properties?.[identifier]?.value
+  if (raw === null || raw === undefined || raw === '') return null
+  const value = Number(raw)
   return Number.isFinite(value) ? value : null
 }
 

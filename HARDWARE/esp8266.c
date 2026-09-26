@@ -126,6 +126,7 @@ uint8_t ESP8266_TestAT(void)
 uint8_t ESP8266_ConnectWiFi(void)
 {
 	char command[96];
+	int command_length;
 
 	if(ESP8266_SendCommand("ATE0\r\n", "OK", 1000) == 0)
 	{
@@ -137,7 +138,11 @@ uint8_t ESP8266_ConnectWiFi(void)
 		return 0;
 	}
 
-	sprintf(command, "AT+CWJAP=\"%s\",\"%s\"\r\n", WIFI_SSID, WIFI_PASSWORD);
+	command_length = snprintf(command, sizeof(command), "AT+CWJAP=\"%s\",\"%s\"\r\n", WIFI_SSID, WIFI_PASSWORD);
+	if((command_length < 0) || ((size_t)command_length >= sizeof(command)))
+	{
+		return 0;
+	}
 	if(ESP8266_SendCommand(command, "OK", 20000) == 0)
 	{
 		return 0;
@@ -151,6 +156,7 @@ uint8_t ESP8266_ConnectWiFi(void)
 uint8_t ESP8266_ConnectTCP(void)
 {
 	char command[96];
+	int command_length;
 	TickType_t start_time;
 
 	//透传模式只支持单连接
@@ -160,7 +166,11 @@ uint8_t ESP8266_ConnectTCP(void)
 	}
 
 	//端口参数是数字，不能添加双引号
-	sprintf(command, "AT+CIPSTART=\"TCP\",\"%s\",%d\r\n", MQTTCOM, MQTTPORT);
+	command_length = snprintf(command, sizeof(command), "AT+CIPSTART=\"TCP\",\"%s\",%d\r\n", MQTTCOM, MQTTPORT);
+	if((command_length < 0) || ((size_t)command_length >= sizeof(command)))
+	{
+		return 0;
+	}
 
 	//一条连接指令只发送一次
 	USART3_ClearRxBuffer();

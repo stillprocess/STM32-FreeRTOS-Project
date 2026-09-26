@@ -13,11 +13,16 @@
 static volatile uint8_t g_mqtt_ping_response = 0;
 
 //向MQTT缓冲区写入带两字节长度的字符串
-static uint16_t MQTT_WriteString(uint8_t *buffer, uint16_t position, const char *text)
+static uint16_t MQTT_WriteString(uint8_t *buffer, uint16_t capacity, uint16_t position, const char *text)
 {
-	uint16_t length;
+	size_t length;
 
-	length = (uint16_t)strlen(text);
+	length = strlen(text);
+	if((position > capacity) || (capacity - position < 2U) ||
+	   (length > capacity - position - 2U))
+	{
+		return 0;
+	}
 	buffer[position++] = (uint8_t)(length >> 8);
 	buffer[position++] = (uint8_t)length;
 	memcpy(&buffer[position], text, length);
@@ -80,9 +85,21 @@ uint8_t OneNET_MQTTConnect(void)
 	body[body_length++] = 0x78;
 
 	//CONNECT载荷顺序：Client ID、Username、Password
-	body_length = MQTT_WriteString(body, body_length, ONENET_DEVICE_NAME);
-	body_length = MQTT_WriteString(body, body_length, ONENET_PRODUCT_ID);
-	body_length = MQTT_WriteString(body, body_length, ONENET_DEVICE_TOKEN);
+	body_length = MQTT_WriteString(body, sizeof(body), body_length, ONENET_DEVICE_NAME);
+	if(body_length == 0U)
+	{
+		return 0;
+	}
+	body_length = MQTT_WriteString(body, sizeof(body), body_length, ONENET_PRODUCT_ID);
+	if(body_length == 0U)
+	{
+		return 0;
+	}
+	body_length = MQTT_WriteString(body, sizeof(body), body_length, ONENET_DEVICE_TOKEN);
+	if(body_length == 0U)
+	{
+		return 0;
+	}
 
 	packet_length = 0;
 	packet[packet_length++] = 0x10;
@@ -263,8 +280,12 @@ uint8_t OneNET_MQTTReadPropertySet(char *payload, uint16_t payload_size)
 			payload_length = frame_end - pos;
 			if(strstr(topic, "/property/set") != NULL)
 			{
-				copy_length = payload_length < (payload_size - 1U) ?
-							  (uint16_t)payload_length : (uint16_t)(payload_size - 1U);
+				if(payload_length >= payload_size)
+				{
+					USART3_DiscardRxBytes(frame_end);
+					return 0;
+				}
+				copy_length = (uint16_t)payload_length;
 				for(i = 0; i < copy_length; i++)
 				{
 					payload[i] = (char)u3_recvbuf[pos + i];

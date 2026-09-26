@@ -12,3 +12,7 @@ LIST/
 
 # 本地设备凭据，不提交到GitHub
 HARDWARE/secrets.h
+
+# Keil user settings
+*.uvguix.*
+*.uvoptx
