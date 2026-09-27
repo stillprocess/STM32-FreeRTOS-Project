@@ -248,7 +248,7 @@ int32_t fpm_empty(void)
 	usart2_printf_recv_buf();	/* 调试打印原始响应帧 */
 	
 	/* 校验帧头 EF 01，确认是 FPM383F 的合法回应 */
-	if(g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
+	if(g_usart2_cnt < 10 || g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
 	{
 		dgb_printf_safe("fpm_empty检查硬件连接\r\n");
 
@@ -331,7 +331,7 @@ int32_t fpm_enroll_auto(uint16_t id)
 	
 	usart2_printf_recv_buf();
 	
-	if(g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
+	if(g_usart2_cnt < 10 || g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
 	{
 		dgb_printf_safe("自动注册指纹:数据包异常！\r\n");
 		dgb_printf_safe("1.检查硬件连接\r\n");
@@ -416,7 +416,7 @@ int32_t fpm_idenify_auto(uint16_t *id)
 	
 	usart2_printf_recv_buf();
 	
-	if(g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
+	if(g_usart2_cnt < 10 || g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
 	{
 		dgb_printf_safe("自动验证指纹:数据包异常！\r\n");
 		dgb_printf_safe("1.检查硬件连接\r\n");
@@ -439,7 +439,7 @@ int32_t fpm_idenify_auto(uint16_t *id)
 	}
 	
 	/* 分数值 0xFFFF 表示未找到匹配指纹 */
-	if(((g_usart2_buf[13]<<8)|g_usart2_buf[14])==0xFFFF)
+	if(g_usart2_cnt < 15 || ((g_usart2_buf[13]<<8)|g_usart2_buf[14])==0xFFFF)
 	{
 		dgb_printf_safe("自动验证指纹：分数值异常，可能没有存在该指纹\r\n");
 		
@@ -511,7 +511,7 @@ int32_t fpm_identify_all(uint16_t *found_id)
 		dgb_printf_safe("指纹识别:超时\r\n");
 		return -1;
 	}
-	if(g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
+	if(g_usart2_cnt < 10 || g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
 	{
 		dgb_printf_safe("指纹识别:数据包异常！\r\n");
 		return -1;
@@ -524,7 +524,7 @@ int32_t fpm_identify_all(uint16_t *found_id)
     }
     
     /* 分数值 0xFFFF 表示全库无匹配 */
-    if(((g_usart2_buf[13]<<8)|g_usart2_buf[14])==0xFFFF)
+    if(g_usart2_cnt < 15 || ((g_usart2_buf[13]<<8)|g_usart2_buf[14])==0xFFFF)
     {
         dgb_printf_safe("指纹识别：未找到匹配指纹\r\n");
         return -1;        
@@ -555,7 +555,7 @@ int32_t fpm_id_total(uint16_t *total)
 	
 	usart2_printf_recv_buf();	
 	
-	if(g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
+	if(g_usart2_cnt < 10 || g_usart2_buf[0]!=0xEF || g_usart2_buf[1]!=0x01)
 	{
 		dgb_printf_safe("fpm_id_total请检查硬件连接\r\n");
 
@@ -578,6 +578,11 @@ int32_t fpm_id_total(uint16_t *total)
 	}	
 	
 	/* buf[10]~buf[11]：指纹总数，高字节在前 */
+	if(g_usart2_cnt < 12)
+	{
+		return -1;
+	}
+
 	*total=(g_usart2_buf[10]<<8)|g_usart2_buf[11];
 
 	return 0;

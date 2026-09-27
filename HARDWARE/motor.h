@@ -15,8 +15,5 @@ void PWM_SetCompareMotor(uint16_t CCR);
 void Motor_Control(uint8_t direction, uint8_t speed);
 void Motor_EmergencyStop(void);
 void Motor_SoftControl(uint8_t target_speed, uint16_t step_time_ms, uint8_t step_size);
-void Motor_FwdRevTest(uint8_t speed);
-void Motor_SpeedTest(void);
-void Motor_ComprehensiveTest(void);
 
 #endif

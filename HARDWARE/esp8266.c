@@ -6,7 +6,6 @@
 #include "secrets.h"
 #include <string.h>
 
-#define MQTTCOM         "Kb6mt1xhD7.mqtts.acc.cmcconenet.cn"
 #define MQTTPORT         1883
 
 //在USART3接收计数范围内查找AT回复或断线提示
@@ -126,6 +125,7 @@ uint8_t ESP8266_TestAT(void)
 uint8_t ESP8266_ConnectWiFi(void)
 {
 	char command[96];
+	int length;
 
 	if(ESP8266_SendCommand("ATE0\r\n", "OK", 1000) == 0)
 	{
@@ -137,7 +137,11 @@ uint8_t ESP8266_ConnectWiFi(void)
 		return 0;
 	}
 
-	sprintf(command, "AT+CWJAP=\"%s\",\"%s\"\r\n", WIFI_SSID, WIFI_PASSWORD);
+	length = snprintf(command, sizeof(command), "AT+CWJAP=\"%s\",\"%s\"\r\n", WIFI_SSID, WIFI_PASSWORD);
+	if(length < 0 || length >= (int)sizeof(command))
+	{
+		return 0;
+	}
 	if(ESP8266_SendCommand(command, "OK", 20000) == 0)
 	{
 		return 0;
@@ -151,6 +155,7 @@ uint8_t ESP8266_ConnectWiFi(void)
 uint8_t ESP8266_ConnectTCP(void)
 {
 	char command[96];
+	int length;
 	TickType_t start_time;
 
 	//透传模式只支持单连接
@@ -160,7 +165,11 @@ uint8_t ESP8266_ConnectTCP(void)
 	}
 
 	//端口参数是数字，不能添加双引号
-	sprintf(command, "AT+CIPSTART=\"TCP\",\"%s\",%d\r\n", MQTTCOM, MQTTPORT);
+	length = snprintf(command, sizeof(command), "AT+CIPSTART=\"TCP\",\"%s\",%d\r\n", ONENET_MQTT_HOST, MQTTPORT);
+	if(length < 0 || length >= (int)sizeof(command))
+	{
+		return 0;
+	}
 
 	//一条连接指令只发送一次
 	USART3_ClearRxBuffer();

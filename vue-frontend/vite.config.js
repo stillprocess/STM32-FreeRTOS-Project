@@ -37,11 +37,17 @@ function validateEnvironment(env) {
 function readJsonBody(request) {
   return new Promise((resolve, reject) => {
     let body = ''
+    let tooLarge = false
     request.on('data', (chunk) => {
+      if (tooLarge) return
       body += chunk
-      if (body.length > 65536) reject(new Error('请求内容过大'))
+      if (body.length > 65536) {
+        tooLarge = true
+        reject(new Error('请求内容过大'))
+      }
     })
     request.on('end', () => {
+      if (tooLarge) return
       try {
         resolve(body ? JSON.parse(body) : {})
       } catch {
@@ -98,11 +104,17 @@ function createApiMiddleware(env) {
         const params = {}
         for (const [key, raw] of Object.entries(input)) {
           if (!propertyKeys.has(key)) continue
+          if (raw === null || raw === '' || typeof raw === 'boolean') throw new Error(`${key} 不是有效数值`)
           const value = Number(raw)
           if (!Number.isFinite(value)) throw new Error(`${key} 不是有效数值`)
           params[key] = value
         }
         if (Object.keys(params).length !== 4) throw new Error('必须同时提交四个阈值')
+        if (params.minitemp_set >= params.maxtemp_set || params.minihum_set >= params.maxhum_set ||
+            params.minihum_set < 0 || params.maxhum_set > 100 ||
+            params.minitemp_set < -40 || params.maxtemp_set > 200) {
+          throw new Error('阈值超出范围或上下限顺序错误')
+        }
 
         await callOneNet(env, '/thingmodel/set-device-property', {
           method: 'POST',

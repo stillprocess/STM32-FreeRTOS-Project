@@ -12,3 +12,15 @@ LIST/
 
 # 本地设备凭据，不提交到GitHub
 HARDWARE/secrets.h
+
+# Keil local settings
+*.uvoptx
+*.uvguix.*
+USER/DebugConfig/
+
+# Frontend local files
+vue-frontend/node_modules/
+vue-frontend/dist/
+vue-frontend/.env
+vue-frontend/.env.*
+!vue-frontend/.env.example

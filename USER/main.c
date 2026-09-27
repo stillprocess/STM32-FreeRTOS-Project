@@ -1092,40 +1092,40 @@ void Keyboard_Task(void *arg)
 				message.x = 1;
 				message.page = 2;
 				message.size = 8;
-				sprintf(message.text, "Temp:%3u C     ", (unsigned int)temp);
+				snprintf(message.text, sizeof(message.text), "Temp:%3u C     ", (unsigned int)temp);
 				xQueueSend(xOLEDQueue, &message, portMAX_DELAY);
 
 				message.page = 3;
-				sprintf(message.text, "Humi:%3u %%     ", (unsigned int)humi);
+				snprintf(message.text, sizeof(message.text), "Humi:%3u %%     ", (unsigned int)humi);
 				xQueueSend(xOLEDQueue, &message, portMAX_DELAY);
 
 				message.page = 4;
-				sprintf(message.text, "T:%3.0f-%3.0f C    ", (double)min_temp, (double)max_temp);
+				snprintf(message.text, sizeof(message.text), "T:%3.0f-%3.0f C    ", (double)min_temp, (double)max_temp);
 				xQueueSend(xOLEDQueue, &message, portMAX_DELAY);
 
 				message.page = 5;
-				sprintf(message.text, "H:%3u-%3u %%    ",
+				snprintf(message.text, sizeof(message.text), "H:%3u-%3u %%    ",
 						(unsigned int)min_humi, (unsigned int)max_humi);
 				xQueueSend(xOLEDQueue, &message, portMAX_DELAY);
 
 				message.page = 6;
                 if((temp_alarm != 0) && (humi_alarm != 0))
                 {
-                    sprintf(message.text, "Alarm:T+H      ");
+                    snprintf(message.text, sizeof(message.text), "Alarm:T+H      ");
                 }
                 else if(temp_alarm != 0)
                 {
 					xEventGroupSetBits(xBeepEventGroup,BEEP_EVENT_SHORT);
-                    sprintf(message.text, "Alarm:TEMP     ");
+                    snprintf(message.text, sizeof(message.text), "Alarm:TEMP     ");
                 }
                 else if(humi_alarm != 0)
                 {
 					xEventGroupSetBits(xBeepEventGroup,BEEP_EVENT_SHORT);
-                    sprintf(message.text, "Alarm:HUMI     ");
+                    snprintf(message.text, sizeof(message.text), "Alarm:HUMI     ");
                 }
                 else
                 {
-                    sprintf(message.text, "Alarm:OK       ");
+                    snprintf(message.text, sizeof(message.text), "Alarm:OK       ");
                 }
 				xQueueSend(xOLEDQueue, &message, portMAX_DELAY);
 

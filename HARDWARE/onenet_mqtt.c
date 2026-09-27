@@ -7,8 +7,6 @@
 #include "stdio.h"
 #include "secrets.h"
 
-#define ONENET_PRODUCT_ID    "Kb6mt1xhD7"
-#define ONENET_DEVICE_NAME   "dht11"
 
 static volatile uint8_t g_mqtt_ping_response = 0;
 
@@ -63,6 +61,12 @@ uint8_t OneNET_MQTTConnect(void)
 	uint32_t remaining_length;
 	uint8_t encoded_byte;
 
+	if(strlen(ONENET_DEVICE_NAME) + strlen(ONENET_PRODUCT_ID) +
+	   strlen(ONENET_DEVICE_TOKEN) + 16U > sizeof(body))
+	{
+		return 0;
+	}
+
 	body_length = 0;
 
 	//MQTT协议名称和版本
@@ -100,6 +104,11 @@ uint8_t OneNET_MQTTConnect(void)
 		packet[packet_length++] = encoded_byte;
 	}
 	while(remaining_length > 0);
+
+	if(packet_length + body_length > sizeof(packet))
+	{
+		return 0;
+	}
 
 	memcpy(&packet[packet_length], body, body_length);
 	packet_length += body_length;
@@ -155,10 +164,17 @@ uint8_t OneNET_MQTTSubscribe(void)
 	uint32_t value;
 	uint8_t encoded_byte;
 
-	sprintf(topic, "$sys/%s/%s/thing/property/set",
-			ONENET_PRODUCT_ID, ONENET_DEVICE_NAME);
+	if(snprintf(topic, sizeof(topic), "$sys/%s/%s/thing/property/set", ONENET_PRODUCT_ID, ONENET_DEVICE_NAME) >= sizeof(topic))
+	{
+		return 0;
+	}
 	topic_length = (uint16_t)strlen(topic);
 	remaining_length = 2U + 2U + topic_length + 1U;
+
+	if(remaining_length + 5U > sizeof(packet))
+	{
+		return 0;
+	}
 
 	packet_length = 0;
 	packet[packet_length++] = 0x82;
@@ -228,8 +244,12 @@ uint8_t OneNET_MQTTReadPropertySet(char *payload, uint16_t payload_size)
 			}
 			while((encoded_byte & 0x80U) != 0U);
 
+			if(remaining_length > count - pos)
+			{
+				return 0;
+			}
 			frame_end = pos + remaining_length;
-			if((frame_end > count) || (pos + 2U > frame_end))
+			if(pos + 2U > frame_end)
 			{
 				return 0;
 			}
@@ -263,8 +283,12 @@ uint8_t OneNET_MQTTReadPropertySet(char *payload, uint16_t payload_size)
 			payload_length = frame_end - pos;
 			if(strstr(topic, "/property/set") != NULL)
 			{
-				copy_length = payload_length < (payload_size - 1U) ?
-							  (uint16_t)payload_length : (uint16_t)(payload_size - 1U);
+				if(payload_length >= payload_size)
+				{
+					USART3_DiscardRxBytes(frame_end);
+					return 0;
+				}
+				copy_length = (uint16_t)payload_length;
 				for(i = 0; i < copy_length; i++)
 				{
 					payload[i] = (char)u3_recvbuf[pos + i];
@@ -344,16 +368,21 @@ uint8_t OneNET_MQTTPublish(uint8_t temperature, uint8_t humidity)
 	char topic[96];
 	char payload[160];
 
-	sprintf(topic, "$sys/%s/%s/thing/property/post",
-			ONENET_PRODUCT_ID, ONENET_DEVICE_NAME);
-	sprintf(payload,
+	if(snprintf(topic, sizeof(topic), "$sys/%s/%s/thing/property/post", ONENET_PRODUCT_ID, ONENET_DEVICE_NAME) >= sizeof(topic))
+	{
+		return 0;
+	}
+	if(snprintf(payload, sizeof(payload),
 			"{\"id\":\"%lu\",\"version\":\"1.0\","
 			"\"params\":{\"temp_value\":{\"value\":%u},"
 			"\"humidity_value\":{\"value\":%u}},"
 			"\"method\":\"thing.event.property.post\"}",
 			(unsigned long)xTaskGetTickCount(),
 			(unsigned int)temperature,
-			(unsigned int)humidity);
+			(unsigned int)humidity) >= sizeof(payload))
+	{
+		return 0;
+	}
 
 	return MQTT_SendPublishPacket(topic, payload);
 }
@@ -388,10 +417,14 @@ uint8_t OneNET_MQTTReplyPropertySet(const char *request_payload)
 	memcpy(request_id, id_start, id_length);
 	request_id[id_length] = '\0';
 
-	sprintf(topic, "$sys/%s/%s/thing/property/set_reply",
-			ONENET_PRODUCT_ID, ONENET_DEVICE_NAME);
-	sprintf(reply, "{\"id\":\"%s\",\"code\":200,\"msg\":\"success\"}",
-			request_id);
+	if(snprintf(topic, sizeof(topic), "$sys/%s/%s/thing/property/set_reply", ONENET_PRODUCT_ID, ONENET_DEVICE_NAME) >= sizeof(topic))
+	{
+		return 0;
+	}
+	if(snprintf(reply, sizeof(reply), "{\"id\":\"%s\",\"code\":200,\"msg\":\"success\"}", request_id) >= sizeof(reply))
+	{
+		return 0;
+	}
 
 	return MQTT_SendPublishPacket(topic, reply);
 }
